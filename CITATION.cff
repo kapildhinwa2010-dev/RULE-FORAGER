@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use rule-forager in your research, please cite it as below."
+title: "RULE-FORAGER: rules without a teacher"
+authors:
+  - family-names: Dhinwa
+    given-names: Kapil
+version: 0.1.0
+date-released: "2026-11-09"
+license: MIT
+repository-code: "https://github.com/kapildhinwa2010-dev/RULE-FORAGER"
+abstract: "A toy MDL-scored rule inducer: mines inverse and shared-filler relations from raw fact atoms alone, rediscovering hand-written rules with no labels."
