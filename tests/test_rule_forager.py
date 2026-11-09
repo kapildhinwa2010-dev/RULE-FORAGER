@@ -13,6 +13,28 @@ def test_inverse_rule_rediscovered():
     assert found[0]["support"] >= 15
 
 
+def test_inverse_rules_keep_their_own_relation_pair():
+    atoms = []
+    for i in range(3):
+        atoms.extend([(f"a{i}", "r1", f"b{i}"), (f"b{i}", "s1", f"a{i}")])
+        atoms.extend([(f"c{i}", "r2", f"d{i}"), (f"d{i}", "s2", f"c{i}")])
+
+    rules = mine_inverse(atoms, min_support=3)
+    pairs = {frozenset(rule["relations"]) for rule in rules}
+    assert pairs == {frozenset(("r1", "s1")), frozenset(("r2", "s2"))}
+
+
+def test_inverse_pair_deduplication_preserves_distinct_entity_types():
+    atoms = [
+        (1, "r", "x"), ("x", "s", 1),
+        ("1", "r", "x"), ("x", "s", "1"),
+    ]
+
+    rules = mine_inverse(atoms, min_support=2)
+    assert len(rules) == 1
+    assert rules[0]["support"] == 2
+
+
 def test_mdl_saved_positive():
     atoms = demo_kb()
     report = forage(atoms)
