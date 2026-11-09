@@ -1,10 +1,10 @@
 """RULE-FORAGER: rediscover rules from facts alone - no teacher, no labels.
 
 Given only a knowledge base of atoms (subject, relation, object), the forager
-hunts for structure: inverse relations, symmetric relations, and shared
-fillers. Rules are scored by description length saved (a toy MDL principle):
-a rule is worth keeping only if replacing the atoms it covers costs more bits
-than stating the rule once.
+hunts for structure: inverse relations and shared fillers. Rules are scored
+by description length saved (a toy MDL principle): a rule is worth keeping
+only if replacing the atoms it covers costs more bits than stating the rule
+once.
 
 Pure Python. No dependencies. No training. Bounded evaluation.
 """
@@ -16,44 +16,45 @@ from collections import defaultdict
 
 
 def mine_inverse(atoms, min_support=3):
-    """Find relation pairs (p, q) where (a, p, b) and (b, q, a) co-occur."""
+    """Find canonical relation pairs (p, q) where (a, p, b) and (b, q, a) co-occur.
+
+    Each unordered subject pair is visited once, and each relation pair is
+    canonicalized (sorted), so an inverse rule is reported exactly once.
+    """
     lookup = set(atoms)
+    rev_rels = defaultdict(set)
+    for s, r, o in lookup:
+        rev_rels[(s, o)].add(r)
+
     counts = defaultdict(int)
+    seen_pairs = set()
     for a, p, b in atoms:
-        if (b, p, a) in lookup:
-            counts[(p, p)] += 1
-        for q in {rel for s2, rel, o2 in [(b, r, a) for r in _rels_of(lookup, b, a)]}:
-            counts[(p, q)] += 1
+        key = tuple(sorted([str(a), str(b)]))
+        if key in seen_pairs:
+            continue
+        seen_pairs.add(key)
+        for q in rev_rels.get((b, a), set()):
+            pair = tuple(sorted([p, q]))
+            counts[pair] += 1
+
     rules = []
     for (p, q), support in counts.items():
         if support >= min_support:
             saved = 2 * support - (len(p) + len(q) + 1)
             if saved > 0:
-                rules.append({"rule": "inverse", "relations": [p, q], "support": support, "mdl_saved": saved})
+                rules.append({"rule": "inverse", "relations": list(pair), "support": support, "mdl_saved": saved})
     return sorted(rules, key=lambda r: -r["support"])
 
 
-def _rels_of(lookup, subj, obj):
-    """Relations linking subj -> obj in the lookup set."""
-    out = set()
-    for s, r, o in lookup:
-        if s == subj and o == obj:
-            out.add(r)
-    return out
-
-
 def mine_shared_fillers(atoms, min_support=3):
-    """Find relation pairs that share the same object pattern."""
+    """Find relation + filler patterns shared by many subjects."""
     by_pair = defaultdict(set)
     for a, p, b in atoms:
         by_pair[(p, b)].add(a)
     rules = []
-    counts = defaultdict(int)
     for (p, b), subjects in by_pair.items():
         if len(subjects) >= min_support:
-            counts[(p, b)] = len(subjects)
-    for (p, b), support in counts.items():
-        rules.append({"rule": "shared_filler", "relation": p, "filler": b, "support": support})
+            rules.append({"rule": "shared_filler", "relation": p, "filler": b, "support": len(subjects)})
     return sorted(rules, key=lambda r: -r["support"])
 
 
