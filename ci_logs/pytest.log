@@ -1,0 +1,17 @@
+F...                                                                     [100%]
+=================================== FAILURES ===================================
+________________________ test_inverse_rule_rediscovered ________________________
+
+    def test_inverse_rule_rediscovered():
+        atoms = demo_kb()
+        rules = mine_inverse(atoms, min_support=3)
+        found = [r for r in rules if set(r["relations"]) == {"capital_of", "country_of"}]
+>       assert len(found) == 1
+E       AssertionError: assert 2 == 1
+E        +  where 2 = len([{'rule': 'inverse', 'relations': ['capital_of', 'country_of'], 'support': 20, 'mdl_saved': 19}, {'rule': 'inverse', 'relations': ['country_of', 'capital_of'], 'support': 20, 'mdl_saved': 19}])
+
+tests/test_rule_forager.py:12: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_rule_forager.py::test_inverse_rule_rediscovered - AssertionError: assert 2 == 1
+ +  where 2 = len([{'rule': 'inverse', 'relations': ['capital_of', 'country_of'], 'support': 20, 'mdl_saved': 19}, {'rule': 'inverse', 'relations': ['country_of', 'capital_of'], 'support': 20, 'mdl_saved': 19}])
+1 failed, 3 passed in 0.03s
