@@ -29,7 +29,7 @@ def mine_inverse(atoms, min_support=3):
     counts = defaultdict(int)
     seen_pairs = set()
     for a, p, b in atoms:
-        key = tuple(sorted([str(a), str(b)]))
+        key = frozenset((a, b))
         if key in seen_pairs:
             continue
         seen_pairs.add(key)
@@ -42,7 +42,7 @@ def mine_inverse(atoms, min_support=3):
         if support >= min_support:
             saved = 2 * support - (len(p) + len(q) + 1)
             if saved > 0:
-                rules.append({"rule": "inverse", "relations": list(pair), "support": support, "mdl_saved": saved})
+                rules.append({"rule": "inverse", "relations": [p, q], "support": support, "mdl_saved": saved})
     return sorted(rules, key=lambda r: -r["support"])
 
 
